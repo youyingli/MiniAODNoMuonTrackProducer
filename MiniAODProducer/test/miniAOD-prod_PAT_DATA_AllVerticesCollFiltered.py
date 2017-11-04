@@ -9,7 +9,6 @@ process = cms.Process('PAT')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
-process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
@@ -22,98 +21,74 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100)
 )
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+process.MessageLogger.categories.append('HLTrigReport')
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 # Input source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #        'root://cms-xrd-global.cern.ch//store/data/Run2017A/DoubleMuon/AOD/PromptReco-v2/000/296/172/00000/4AAD2027-544C-E711-802C-02163E01A515.root'
-        'root://cms-xrd-global.cern.ch//store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/02367FB0-4C8F-E711-A7D0-02163E0135EB.root',
+#        'root://cms-xrd-global.cern.ch//store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/02367FB0-4C8F-E711-A7D0-02163E0135EB.root',
+        '/store/data/Run2017C/SingleMuon/AOD/PromptReco-v1/000/299/368/00000/0438D641-916D-E711-A787-02163E013950.root',
 #        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/064FB49F-428F-E711-A18B-02163E011BF8.root',
 #        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/0C2BD442-398F-E711-97DE-02163E019DE8.root',
 ),
     secondaryFileNames = cms.untracked.vstring()
 )
 
-process.options = cms.untracked.PSet(
-
-)
-
-# Production Info
-process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('miniAOD-prod nevts:100'),
-    name = cms.untracked.string('Applications'),
-    version = cms.untracked.string('$Revision: 1.19 $')
-)
-
-#added JM: beg
-
+#For muon track manager(New branch for diphoton vertex id)
 from MiniAODNoMuonTrackProducer.MiniAODProducer.myNoMuonTrackProducer_cfi import *
-process.myNoMuonTrackProducerNoMu=myNoMuonTrackProducer.clone()
-process.myNoMuonTrackProducerNoMu.doRemoveMuons=cms.untracked.bool(True)
-process.myNoMuonTrackProducerNoMu.isData=cms.untracked.bool(True)
+process.myNoMuonTrackProducerNoMu                 = myNoMuonTrackProducer.clone()
+process.myNoMuonTrackProducerNoMu.doRemoveMuons   = cms.untracked.bool(True)
+process.myNoMuonTrackProducerNoMu.isData          = cms.untracked.bool(True)
 
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import *
-process.offlinePrimaryVerticesNoMu=offlinePrimaryVertices.clone()
-process.offlinePrimaryVerticesNoMu.TrackLabel = cms.InputTag("myNoMuonTrackProducerNoMu")
+process.offlinePrimaryVerticesNoMu                = offlinePrimaryVertices.clone()
+process.offlinePrimaryVerticesNoMu.TrackLabel     = cms.InputTag('myNoMuonTrackProducerNoMu')
 
 
 from MiniAODNoMuonTrackProducer.MiniAODProducer.myNoMuonTrackProducer_cfi import *
-process.myNoMuonTrackProducerWithMu=myNoMuonTrackProducer.clone()
-process.myNoMuonTrackProducerWithMu.doRemoveMuons=cms.untracked.bool(False)
-process.myNoMuonTrackProducerWithMu.isData=cms.untracked.bool(True)
+process.myNoMuonTrackProducerWithMu               = myNoMuonTrackProducer.clone()
+process.myNoMuonTrackProducerWithMu.doRemoveMuons = cms.untracked.bool(False)
+process.myNoMuonTrackProducerWithMu.isData        = cms.untracked.bool(True)
 
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import *
-process.offlinePrimaryVerticesWithMu=offlinePrimaryVertices.clone()
-process.offlinePrimaryVerticesWithMu.TrackLabel = cms.InputTag("myNoMuonTrackProducerWithMu")
+process.offlinePrimaryVerticesWithMu              = offlinePrimaryVertices.clone()
+process.offlinePrimaryVerticesWithMu.TrackLabel   = cms.InputTag('myNoMuonTrackProducerWithMu')
 
-from PhysicsTools.PatAlgos.selectionLayer1.countPatCandidates_cff import *
-from PhysicsTools.PatAlgos.selectionLayer1.muonCountFilter_cfi import *
-from PhysicsTools.PatAlgos.selectionLayer1.muonSelector_cfi import *
- 
+process.myFilter = cms.EDFilter('myNoLeptonFilter',
+                                allTrackTag    = cms.InputTag('myNoMuonTrackProducerWithMu'),
+                                noLepTrackTag  = cms.InputTag('myNoMuonTrackProducerNoMu')
+)
 
+process.selectionNoLeptonFilter = cms.Path(( process.myNoMuonTrackProducerNoMu + process.myNoMuonTrackProducerWithMu ) * process.myFilter)
+process.vtxRefit = cms.Path(process.offlinePrimaryVerticesNoMu + process.offlinePrimaryVerticesWithMu)
 
-process.myFilter = cms.EDFilter(
-    "myNoLeptonFilter",
-    allTrackTag=cms.InputTag('myNoMuonTrackProducerWithMu'),
-    noLepTrackTag=cms.InputTag('myNoMuonTrackProducerNoMu')
-    )
-
-process.selectionNoLeptonFilter = cms.Path((process.myNoMuonTrackProducerNoMu+process.myNoMuonTrackProducerWithMu)*process.myFilter)
-process.vtxRefit=cms.Path(process.offlinePrimaryVerticesNoMu+process.offlinePrimaryVerticesWithMu)
-
-#added JM: end
 
 # Output definition
-
-
-
-process.MINIAODoutput = cms.OutputModule("PoolOutputModule",
-    compressionAlgorithm = cms.untracked.string('LZMA'),
-    compressionLevel = cms.untracked.int32(4),
-    dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string(''),
-        filterName = cms.untracked.string('')
-    ),
-    dropMetaData = cms.untracked.string('ALL'),
+process.MINIAODoutput = cms.OutputModule('PoolOutputModule',
+    compressionAlgorithm         = cms.untracked.string('LZMA'),
+    compressionLevel             = cms.untracked.int32(4),
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
-    fastCloning = cms.untracked.bool(False),
-    fileName = cms.untracked.string('miniAOD-prod_PAT_my.root'),
-    outputCommands = process.MINIAODEventContent.outputCommands,
+    outputCommands               = process.MINIAODEventContent.outputCommands,
+    fileName                     = cms.untracked.string('miniAOD-prod_PAT.root'),
+    dropMetaData                 = cms.untracked.string('ALL'),
+    fastCloning                  = cms.untracked.bool(False),
+    splitLevel                   = cms.untracked.int32(0),
     overrideInputFileSplitLevels = cms.untracked.bool(True),
-    SelectEvents = cms.untracked.PSet( #added JM
-        SelectEvents = cms.vstring('selectionNoLeptonFilter')#added JM
-    )#added JM
+    SelectEvents                 = cms.untracked.PSet( SelectEvents = cms.vstring('selectionNoLeptonFilter') )
 )
 
-process.MINIAODoutput.outputCommands.append('keep *_offlinePrimaryVertices*_*_*') #added JM
-process.MINIAODoutput.outputCommands.append('keep *_myNoMuonTrackProducer*_*_*') #added JM
+process.MINIAODoutput.outputCommands.append('keep *_offlinePrimaryVertices*_*_*')
+process.MINIAODoutput.outputCommands.append('keep *_myNoMuonTrackProducer*_*_*')
 
 
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v4', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v10', '')
 #92X_dataRun2_Prompt_v8 for Run2017 C
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')#added JM

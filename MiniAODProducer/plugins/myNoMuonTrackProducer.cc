@@ -162,6 +162,7 @@ myNoMuonTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
                 float dR2 = deltaR(the_track->eta(), the_track->phi(), pat_muon2->eta(), pat_muon2->phi()); 
                 if (doRemoveMuons && ((dPt1 < 0.01 && dR1 < 0.005) || (dPt2 < 0.01 && dR2 < 0.005))) {
                     doMatch = true;
+                    cout << "Match one of two muons come from Z boson" << endl;
                 }	
             }
         }
