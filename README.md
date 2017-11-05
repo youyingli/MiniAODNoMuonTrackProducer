@@ -1,35 +1,35 @@
+# MiniAODNoMuonTrackProducer
+## MiniAODProducer
+
+  - Code to reproduce the vertex collection without the muons tracks in Z events
+  - For Higgs to 2 photons vertex validation
+  - this versions works on 2017 Data in CMSSW_9_2_X but can probably work in other releases
 
 
-Hgg_ZVertexRefit
-
-
-- Code to reproduce the vertex collection without the muons tracks in Z events
-- For Higgs to 2 photons vertex validation
-- this versions works on 2017 Data in CMSSW_9_2_1 but can probably work in other releases
-
-For regular users:
-
-- install the code
-
-cmsrel CMSSW_9_2_8
-
+### Install the code
+```
+cmsrel CMSSW_9_2_13
 cd CMSSW_9_2_8/src
-
 cmsenv
-
 git cms-init
-
-cd $CMSSW_BASE/src
-  
 git clone https://github.com/youyingli/MiniAODNoMuonTrackProducer
-
-
-- compile
-
 scram b -j 3
-
-- to run it:
-
+```
+### Test code
+```
 cmsRun MiniAODNoMuonTrackProducer/MiniAODProducer/python/miniAOD-prod_PAT_DATA_AllVerticesCollFiltered.py
-
-- or use crabAllData.py file and modify it accordingly to what you want to do
+```
+### Crab job 
+After building your crab config file, please test your crab job by
+```
+source /cvmfs/cms.cern.ch/crab3/crab.sh
+crab submit -c <crab config file> --dryrun
+```
+If not failed, it will show
+```javascript=
+Data.unitsPerJob = 79
+```
+which tells you a correct number should be set in your crab config file. Then, modify your config file and do
+```
+crab submit -c <crab config file>
+```
