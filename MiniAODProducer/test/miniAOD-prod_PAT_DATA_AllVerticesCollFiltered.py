@@ -9,7 +9,6 @@ process = cms.Process('PAT')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
-process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
@@ -19,22 +18,23 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
+
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
-process.MessageLogger.categories.append('HLTrigReport')
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+
+process.load('FWCore.MessageService.MessageLogger_cfi')
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 # Input source
-process.source = cms.Source("PoolSource",
+process.source = cms.Source('PoolSource',
     fileNames = cms.untracked.vstring(
 #        'root://cms-xrd-global.cern.ch//store/data/Run2017A/DoubleMuon/AOD/PromptReco-v2/000/296/172/00000/4AAD2027-544C-E711-802C-02163E01A515.root'
 #        'root://cms-xrd-global.cern.ch//store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/02367FB0-4C8F-E711-A7D0-02163E0135EB.root',
         '/store/data/Run2017C/SingleMuon/AOD/PromptReco-v1/000/299/368/00000/0438D641-916D-E711-A787-02163E013950.root',
 #        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/064FB49F-428F-E711-A18B-02163E011BF8.root',
 #        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/0C2BD442-398F-E711-97DE-02163E019DE8.root',
-),
-    secondaryFileNames = cms.untracked.vstring()
+    )
 )
 
 #For muon track manager(New branch for diphoton vertex id)
@@ -91,8 +91,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v10', '')
 #92X_dataRun2_Prompt_v8 for Run2017 C
 
-process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')#added JM
-process.offlinePrimaryVertices.verbose = cms.untracked.bool(False)#added JM
+process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
+process.offlinePrimaryVertices.verbose = cms.untracked.bool(False)
 
 # Path and EndPath definitions
 process.Flag_trackingFailureFilter = cms.Path(process.goodVertices+process.trackingFailureFilter)

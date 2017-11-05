@@ -61,7 +61,7 @@ myNoLeptonFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByToken( noLepTrackToken_, noLepTracks );
 
     if (allTracks->size() - noLepTracks->size() != 2) return false;
-    else cout<<" PASSING"<< endl;
+    else cout<<" PASSING "<< endl;
     return true;
 }
 
