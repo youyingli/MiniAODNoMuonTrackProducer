@@ -3,17 +3,17 @@
 
   - Code to reproduce the vertex collection without the muons tracks in Z events
   - For Higgs to 2 photons vertex validation
-  - this versions works on 2017 Data in CMSSW_9_2_X but can probably work in other releases
+  - this versions works on 2016 Legacy Data in CMSSW_8_0_29 but can probably work in other releases
 
 
 ### Install the code
 ```
-cmsrel CMSSW_9_2_13
-cd CMSSW_9_2_8/src
+cmsrel CMSSW_8_0_29
+cd CMSSW_8_0_29/src
 cmsenv
 git cms-init
 git clone https://github.com/youyingli/MiniAODNoMuonTrackProducer
-scram b -j 3
+scram b -j 10
 ```
 ### Test code
 ```
