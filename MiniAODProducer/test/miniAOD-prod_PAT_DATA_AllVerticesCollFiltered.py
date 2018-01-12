@@ -9,11 +9,11 @@ process = cms.Process('PAT')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
+process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
 process.load('PhysicsTools.PatAlgos.slimming.metFilterPaths_cff')
-process.load('Configuration.StandardSequences.PAT_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -27,14 +27,13 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 # Input source
-process.source = cms.Source('PoolSource',
-    fileNames = cms.untracked.vstring(
-#        'root://cms-xrd-global.cern.ch//store/data/Run2017A/DoubleMuon/AOD/PromptReco-v2/000/296/172/00000/4AAD2027-544C-E711-802C-02163E01A515.root'
-#        'root://cms-xrd-global.cern.ch//store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/02367FB0-4C8F-E711-A7D0-02163E0135EB.root',
-        '/store/data/Run2017C/SingleMuon/AOD/PromptReco-v1/000/299/368/00000/0438D641-916D-E711-A787-02163E013950.root',
-#        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/064FB49F-428F-E711-A18B-02163E011BF8.root',
-#        '/store/data/Run2017D/DoubleMuon/AOD/PromptReco-v1/000/302/031/00000/0C2BD442-398F-E711-97DE-02163E019DE8.root',
-    )
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring('/store/data/Run2016B/DoubleMuon/AOD/07Aug17_ver1-v1/110000/02158126-3E9C-E711-BD01-A4BF01125640.root'),
+    secondaryFileNames = cms.untracked.vstring()
+)
+
+process.options = cms.untracked.PSet(
+    allowUnscheduled = cms.untracked.bool(True)
 )
 
 #For muon track manager(New branch for diphoton vertex id)
@@ -65,7 +64,6 @@ process.myFilter = cms.EDFilter('myNoLeptonFilter',
 process.selectionNoLeptonFilter = cms.Path(( process.myNoMuonTrackProducerNoMu + process.myNoMuonTrackProducerWithMu ) * process.myFilter)
 process.vtxRefit = cms.Path(process.offlinePrimaryVerticesNoMu + process.offlinePrimaryVerticesWithMu)
 
-
 # Output definition
 process.MINIAODoutput = cms.OutputModule('PoolOutputModule',
     compressionAlgorithm         = cms.untracked.string('LZMA'),
@@ -88,8 +86,7 @@ process.MINIAODoutput.outputCommands.append('keep *_myNoMuonTrackProducer*_*_*')
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v10', '')
-#92X_dataRun2_Prompt_v8 for Run2017 C
+process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_2016LegacyRepro_v4', '')
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
 process.offlinePrimaryVertices.verbose = cms.untracked.bool(False)
@@ -126,13 +123,13 @@ process.MINIAODoutput_step = cms.EndPath(process.MINIAODoutput)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.selectionNoLeptonFilter,process.vtxRefit,process.endjob_step,process.MINIAODoutput_step)
-process.schedule.associate(process.patTask)
-from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
-associatePatAlgosToolsTask(process)
 
 #do not add changes to your config after this point (unless you know what you are doing)
 from FWCore.ParameterSet.Utilities import convertToUnscheduled
 process=convertToUnscheduled(process)
+process.load('Configuration.StandardSequences.PAT_cff')
+from FWCore.ParameterSet.Utilities import cleanUnscheduled
+process=cleanUnscheduled(process)
 
 # customisation of the process.
 
@@ -143,10 +140,3 @@ from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeAllDat
 process = miniAOD_customizeAllData(process)
 
 # End of customisation functions
-
-# Customisation from command line
-
-# Add early deletion of temporary data products to reduce peak memory need
-from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
-process = customiseEarlyDelete(process)
-# End adding early deletion
